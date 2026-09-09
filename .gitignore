@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pyc
+instance/
+database.db
+.vscode/
+{templates,static/
+static/uploads/*.jpg
+static/uploads/*.png
+static/reports/*.pdf

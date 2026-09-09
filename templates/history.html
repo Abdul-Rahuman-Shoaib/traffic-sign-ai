@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}Detection History | Traffic Sign AI Assistant{% endblock %}
+
+{% block content %}
+<div class="glass-card mb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div>
+      <h4 class="brand-font text-white mb-1 d-flex align-items-center gap-2">
+        <i class="fa-solid fa-clock-rotate-left text-cyan"></i> Traffic Sign Detection Audit Log
+      </h4>
+      <p class="text-secondary mb-0" style="font-size: 0.85rem;">
+        Comprehensive historical record of all processed images, video frames, and webcam detections.
+      </p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('report_pdf') }}" class="btn btn-cyber-primary btn-sm">
+        <i class="fa-solid fa-file-pdf"></i> Export Official PDF Report
+      </a>
+      {% if detections %}
+      <a href="{{ url_for('clear_history') }}" class="btn btn-cyber-outline btn-sm text-danger" onclick="return confirm('Are you sure you want to clear your detection history?')">
+        <i class="fa-solid fa-trash-can"></i> Clear History
+      </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Search & Filter Controls -->
+<div class="glass-card mb-4 p-3">
+  <div class="row g-2 align-items-center">
+    <div class="col-md-5">
+      <div class="input-group">
+        <span class="input-group-text bg-dark border-secondary text-secondary"><i class="fa-solid fa-magnifying-glass"></i></span>
+        <input type="text" id="historySearchInput" class="form-cyber-input" placeholder="Search by sign name (e.g. Stop, Speed, Yield)..." onkeyup="filterHistoryTable()">
+      </div>
+    </div>
+    <div class="col-md-4">
+      <select id="categoryFilterSelect" class="form-cyber-input" onchange="filterHistoryTable()">
+        <option value="">All Sign Categories</option>
+        <option value="Stop">Stop / Prohibitory Signs</option>
+        <option value="Speed">Speed Limit Signs</option>
+        <option value="Yield">Yield / Give Way</option>
+        <option value="Pedestrian">Pedestrian Crossing</option>
+        <option value="School">School Zone</option>
+        <option value="Traffic Light">Traffic Signals</option>
+        <option value="Road Work">Road Construction</option>
+      </select>
+    </div>
+    <div class="col-md-3 text-end">
+      <span class="text-secondary fs-7">Showing <strong class="text-cyan" id="visibleRowCount">{{ detections|length }}</strong> records</span>
+    </div>
+  </div>
+</div>
+
+<!-- Detection Records Table -->
+<div class="glass-card">
+  {% if detections %}
+  <div class="table-responsive">
+    <table class="table-cyber" id="historyTable">
+      <thead>
+        <tr>
+          <th style="width: 70px;">Scan #</th>
+          <th style="width: 100px;">Visual</th>
+          <th>Identified Sign</th>
+          <th>Confidence</th>
+          <th>Time Recorded</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in detections %}
+        <tr class="history-row" data-sign="{{ d.label|lower }}">
+          <td class="text-secondary fw-semibold">#{{ d.id }}</td>
+          <td>
+            <img src="{{ url_for('static', filename=d.image_path) }}" class="rounded shadow-sm" width="54" height="54" style="object-fit:cover; border: 1px solid var(--border-subtle);">
+          </td>
+          <td>
+            <div class="fw-bold text-white fs-6">{{ d.label }}</div>
+            <div class="text-secondary fs-8">
+              {% if 'Stop' in d.label or 'Entry' in d.label %}
+                <span class="badge badge-cyber badge-danger">Prohibitory / Mandatory</span>
+              {% elif 'Speed' in d.label %}
+                <span class="badge badge-cyber badge-warning">Speed Regulatory</span>
+              {% elif 'Yield' in d.label %}
+                <span class="badge badge-cyber badge-warning">Priority</span>
+              {% else %}
+                <span class="badge badge-cyber badge-info">Warning & Caution</span>
+              {% endif %}
+            </div>
+          </td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <span class="fw-bold text-cyan">{{ (d.confidence * 100)|round(1) }}%</span>
+              <div class="conf-bar-track" style="width: 60px; height: 5px;">
+                <div class="conf-bar-fill" style="width: {{ (d.confidence * 100)|round }}%;"></div>
+              </div>
+            </div>
+          </td>
+          <td class="text-secondary" style="font-size:0.86rem;">
+            <div>{{ d.timestamp.strftime('%d %b %Y') }}</div>
+            <div class="text-tertiary fs-8">{{ d.timestamp.strftime('%H:%M:%S UTC') }}</div>
+          </td>
+          <td class="text-end">
+            <div class="d-flex justify-content-end gap-1">
+              <a href="{{ url_for('report_single_pdf', detection_id=d.id) }}" class="btn btn-cyber-outline btn-sm py-1 px-2" title="Download Inspection Sheet">
+                <i class="fa-solid fa-file-arrow-down text-cyan"></i>
+              </a>
+              <a href="{{ url_for('delete_detection', detection_id=d.id) }}" class="btn btn-cyber-outline btn-sm py-1 px-2 text-danger" title="Delete Scan" onclick="return confirm('Delete this detection record?')">
+                <i class="fa-solid fa-trash-can"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="text-center py-5">
+    <div class="stat-icon-wrapper stat-icon-cyan mx-auto mb-3" style="width: 64px; height: 64px;">
+      <i class="fa-solid fa-folder-open fs-3"></i>
+    </div>
+    <h5 class="text-white">No Detection Records Found</h5>
+    <p class="text-secondary fs-7 mb-3">You have not performed any traffic sign scans yet.</p>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-cyber-primary btn-sm">
+      <i class="fa-solid fa-camera"></i> Launch Detection Dashboard
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterHistoryTable() {
+  const search = document.getElementById('historySearchInput').value.toLowerCase();
+  const category = document.getElementById('categoryFilterSelect').value.toLowerCase();
+  const rows = document.querySelectorAll('.history-row');
+  let visibleCount = 0;
+
+  rows.forEach(row => {
+    const signText = row.getAttribute('data-sign') || '';
+    const matchesSearch = !search || signText.includes(search);
+    const matchesCategory = !category || signText.includes(category);
+
+    if (matchesSearch && matchesCategory) {
+      row.style.display = '';
+      visibleCount++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+
+  const countElem = document.getElementById('visibleRowCount');
+  if (countElem) countElem.textContent = visibleCount;
+}
+</script>
+{% endblock %}

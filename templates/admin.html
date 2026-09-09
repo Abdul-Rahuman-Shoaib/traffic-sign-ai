@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Admin Control Center | Traffic Sign AI Assistant{% endblock %}
+
+{% block content %}
+<div class="glass-card mb-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h4 class="brand-font text-white mb-1 d-flex align-items-center gap-2">
+        <i class="fa-solid fa-shield-halved text-rose"></i> System Administration Control Center
+      </h4>
+      <p class="text-secondary mb-0" style="font-size: 0.85rem;">
+        Manage registered operator accounts, inspect system diagnostics, and monitor traffic sign detection logs.
+      </p>
+    </div>
+    <span class="badge badge-cyber badge-danger fs-7">
+      <i class="fa-solid fa-lock"></i> ROOT PRIVILEGES
+    </span>
+  </div>
+</div>
+
+<!-- Admin Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="glass-card stat-card h-100">
+      <div class="stat-icon-wrapper stat-icon-blue">
+        <i class="fa-solid fa-users"></i>
+      </div>
+      <div>
+        <div class="stat-val">{{ users|length }}</div>
+        <div class="stat-lbl">Registered Drivers</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="glass-card stat-card h-100">
+      <div class="stat-icon-wrapper stat-icon-cyan">
+        <i class="fa-solid fa-camera-retro"></i>
+      </div>
+      <div>
+        <div class="stat-val">{{ total_detections }}</div>
+        <div class="stat-lbl">System Detections</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="glass-card stat-card h-100">
+      <div class="stat-icon-wrapper stat-icon-emerald">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <div>
+        <div class="stat-val text-success">ONLINE</div>
+        <div class="stat-lbl">Vision Pipeline</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="glass-card stat-card h-100">
+      <div class="stat-icon-wrapper stat-icon-amber">
+        <i class="fa-solid fa-database"></i>
+      </div>
+      <div>
+        <div class="stat-val text-warning">SQLite / PyMySQL</div>
+        <div class="stat-lbl">Storage Engine</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- User Management Table -->
+<div class="glass-card mb-4">
+  <h5 class="brand-font text-white mb-3 d-flex align-items-center gap-2">
+    <i class="fa-solid fa-users-gear text-cyan"></i> Operator Accounts & Privileges
+  </h5>
+
+  <div class="table-responsive">
+    <table class="table-cyber">
+      <thead>
+        <tr>
+          <th>User ID</th>
+          <th>Username</th>
+          <th>Role / Status</th>
+          <th>Total Scans</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td class="text-secondary fw-semibold">#{{ u.id }}</td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <i class="fa-solid fa-circle-user text-cyan fs-5"></i>
+              <span class="fw-bold text-white">{{ u.username }}</span>
+            </div>
+          </td>
+          <td>
+            {% if u.is_admin %}
+            <span class="badge badge-cyber badge-danger"><i class="fa-solid fa-shield"></i> Administrator</span>
+            {% else %}
+            <span class="badge badge-cyber badge-info"><i class="fa-solid fa-user"></i> Standard Operator</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="fw-bold text-cyan">{{ u.detections|length }}</span> scans
+          </td>
+          <td class="text-end">
+            {% if u.id != current_user.id %}
+            <div class="d-flex justify-content-end gap-1">
+              <a href="{{ url_for('admin_toggle_role', user_id=u.id) }}" class="btn btn-cyber-outline btn-sm py-1 px-2" title="Toggle Admin Role">
+                <i class="fa-solid fa-user-shield text-warning"></i>
+              </a>
+              <a href="{{ url_for('admin_delete_user', user_id=u.id) }}" class="btn btn-cyber-outline btn-sm py-1 px-2 text-danger" title="Delete User" onclick="return confirm('Delete user {{ u.username }} and all their detection logs?')">
+                <i class="fa-solid fa-user-xmark"></i>
+              </a>
+            </div>
+            {% else %}
+            <span class="badge badge-cyber badge-success">Current Session (You)</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

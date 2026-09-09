@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>{% block title %}Vision-Based Traffic Sign Recognition & Road Safety Assistant{% endblock %}</title>
+  
+  <!-- PWA & Mobile Web App Meta Tags -->
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+  <meta name="theme-color" content="#080c16">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="TrafficSignAI">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='samples/sample_stop.jpg') }}">
+
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+  
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Custom Cyber Theme CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+{% if current_user.is_authenticated %}
+<nav class="navbar navbar-expand-lg glass-nav sticky-top">
+  <div class="container-fluid px-lg-5">
+    <a class="navbar-brand d-flex align-items-center gap-3" href="{{ url_for('dashboard') }}">
+      <div class="stat-icon-wrapper stat-icon-cyan" style="width:40px; height:40px; border-radius:10px;">
+        <i class="fa-solid fa-traffic-light"></i>
+      </div>
+      <div>
+        <div class="fw-bold fs-6 brand-font text-white" style="letter-spacing: 0.04em;">ROAD SAFETY ASSISTANT</div>
+        <div class="text-tertiary" style="font-size: 0.72rem; letter-spacing: 0.05em;">AI VISION TRAFFIC SIGN RECOGNITION</div>
+      </div>
+    </a>
+
+    <button class="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navContent">
+      <i class="fa-solid fa-bars-staggered"></i>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navContent">
+      <ul class="navbar-nav mx-auto gap-1 my-2 my-lg-0">
+        <li class="nav-item">
+          <a href="{{ url_for('dashboard') }}" class="nav-link-custom {% if request.endpoint == 'dashboard' %}active{% endif %}">
+            <i class="fa-solid fa-gauge-high text-cyan"></i> Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{{ url_for('catalog') }}" class="nav-link-custom {% if request.endpoint == 'catalog' %}active{% endif %}">
+            <i class="fa-solid fa-book-open-reader text-blue"></i> Sign Library
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{{ url_for('history') }}" class="nav-link-custom {% if request.endpoint == 'history' %}active{% endif %}">
+            <i class="fa-solid fa-clock-rotate-left text-amber"></i> History
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{{ url_for('about') }}" class="nav-link-custom {% if request.endpoint == 'about' %}active{% endif %}">
+            <i class="fa-solid fa-graduation-cap text-indigo"></i> Project Info
+          </a>
+        </li>
+        {% if current_user.is_admin %}
+        <li class="nav-item">
+          <a href="{{ url_for('admin_panel') }}" class="nav-link-custom {% if 'admin' in request.endpoint %}active{% endif %}">
+            <i class="fa-solid fa-shield-halved text-rose"></i> Admin
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+
+      <div class="d-flex align-items-center gap-2">
+        <!-- PWA Install Mobile App Button -->
+        <button id="pwaInstallBtn" class="btn btn-cyber-cyan btn-sm py-1 px-2" style="display:none; font-size:0.8rem;" onclick="installPWAApp()">
+          <i class="fa-solid fa-mobile-screen-button"></i> Install Mobile App
+        </button>
+
+        <!-- Voice Assistant Status Widget -->
+        <div class="d-none d-md-flex align-items-center gap-2 px-3 py-1 rounded-pill" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25);">
+          <div class="audio-pulse-indicator" id="globalAudioIndicator">
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+          </div>
+          <span class="text-success fw-semibold" style="font-size: 0.76rem; letter-spacing:0.04em;">TTS VOICE</span>
+          <button class="btn btn-sm p-0 text-success border-0" onclick="testVoice()" title="Test Voice Output">
+            <i class="fa-solid fa-volume-high ms-1"></i>
+          </button>
+        </div>
+
+        <!-- User Profile Dropdown -->
+        <div class="dropdown">
+          <button class="btn btn-cyber-outline btn-sm dropdown-toggle py-1 px-3 d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
+            <i class="fa-solid fa-circle-user text-cyan"></i>
+            <span class="fw-semibold">{{ current_user.username }}</span>
+            {% if current_user.is_admin %}
+            <span class="badge badge-cyber badge-danger" style="font-size: 0.65rem;">ADMIN</span>
+            {% endif %}
+          </button>
+          <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow-lg" style="background: #111a30; border: 1px solid var(--border-subtle);">
+            <li><h6 class="dropdown-header text-secondary">Logged in as {{ current_user.username }}</h6></li>
+            <li><a class="dropdown-item" href="{{ url_for('report_pdf') }}"><i class="fa-solid fa-file-pdf me-2 text-cyan"></i> Export PDF Audit</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('about') }}"><i class="fa-solid fa-users me-2 text-primary"></i> Team & College Info</a></li>
+            <li><hr class="dropdown-divider border-secondary opacity-25"></li>
+            <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket me-2"></i> Logout</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile Bottom Navigation Bar -->
+<div class="mobile-bottom-nav">
+  <a href="{{ url_for('dashboard') }}" class="mobile-nav-btn {% if request.endpoint == 'dashboard' %}active{% endif %}">
+    <i class="fa-solid fa-gauge-high"></i>
+    <span>Dashboard</span>
+  </a>
+  <a href="{{ url_for('catalog') }}" class="mobile-nav-btn {% if request.endpoint == 'catalog' %}active{% endif %}">
+    <i class="fa-solid fa-book-open-reader"></i>
+    <span>Signs</span>
+  </a>
+  <a href="{{ url_for('dashboard') }}#webcam" class="mobile-nav-btn mobile-nav-btn-highlight" onclick="switchToWebcamTab()">
+    <i class="fa-solid fa-camera"></i>
+  </a>
+  <button class="mobile-nav-btn border-0 bg-transparent" onclick="toggleFullScreenApp()" title="Full Screen Mobile Mode">
+    <i class="fa-solid fa-expand text-cyan"></i>
+    <span class="text-cyan">Full App</span>
+  </button>
+  <a href="{{ url_for('history') }}" class="mobile-nav-btn {% if request.endpoint == 'history' %}active{% endif %}">
+    <i class="fa-solid fa-clock-rotate-left"></i>
+    <span>History</span>
+  </a>
+  <a href="{{ url_for('about') }}" class="mobile-nav-btn {% if request.endpoint == 'about' %}active{% endif %}">
+    <i class="fa-solid fa-graduation-cap"></i>
+    <span>About</span>
+  </a>
+</div>
+{% endif %}
+
+<!-- Floating Mobile PWA Install Prompt for Phones -->
+<div id="mobileInstallCard" class="d-lg-none position-fixed bottom-0 start-0 end-0 p-3 mb-5" style="z-index: 1050; display: none;">
+  <div class="glass-card p-3 d-flex align-items-center justify-content-between shadow-lg" style="background: rgba(12, 18, 34, 0.95); border: 1px solid var(--accent-cyan);">
+    <div class="d-flex align-items-center gap-2">
+      <div class="stat-icon-wrapper stat-icon-cyan" style="width:36px; height:36px;">
+        <i class="fa-solid fa-mobile-screen-button"></i>
+      </div>
+      <div>
+        <div class="fw-bold text-white fs-7">Install Road Safety App</div>
+        <div class="text-secondary fs-8">Run as a full-screen mobile app</div>
+      </div>
+    </div>
+    <div class="d-flex gap-1">
+      <button class="btn btn-cyber-cyan btn-sm py-1 px-3 fs-8" onclick="installPWAApp()">Install</button>
+      <button class="btn btn-cyber-outline btn-sm py-1 px-2 text-secondary fs-8" onclick="document.getElementById('mobileInstallCard').style.display='none'">✕</button>
+    </div>
+  </div>
+</div>
+
+<div class="container-fluid px-lg-5 py-4">
+  <!-- Flash Notification Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="mb-4">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show glass-card d-flex align-items-center gap-3 border-0 py-3" role="alert" style="background: rgba(17, 26, 48, 0.9);">
+            <i class="fa-solid fa-circle-info fs-5 text-cyan"></i>
+            <div class="flex-grow-1 text-white">{{ message }}</div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- Main Content Block -->
+  {% block content %}{% endblock %}
+</div>
+
+<!-- Project Footer -->
+<footer class="mt-5 py-4 border-top d-none d-lg-block" style="border-color: var(--border-subtle) !important; background: rgba(8, 12, 22, 0.9);">
+  <div class="container-fluid px-lg-5 text-center text-md-start">
+    <div class="row align-items-center gy-3">
+      <div class="col-md-6">
+        <h6 class="text-white mb-1 brand-font">Vision-Based Traffic Sign Recognition & Road Safety Assistant</h6>
+        <p class="text-secondary mb-0" style="font-size: 0.82rem;">
+          Final Year Project (2026 - 2027) &bull; Department of Computer Science and Engineering &bull; 
+          <strong class="text-cyan">PSN Engineering College, Tirunelveli</strong>
+        </p>
+      </div>
+      <div class="col-md-6 text-md-end text-secondary" style="font-size: 0.8rem;">
+        <div>Team: Abdul Rahuman Shoaib | Esakkiraja | Jebicson Francis | K.G. Maharajan</div>
+        <div class="text-tertiary mt-1">Cross-Platform Web, PC Desktop App & Mobile PWA</div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Service Worker Registration & PWA Installation Logic -->
+<script>
+let deferredPrompt = null;
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/static/sw.js')
+    .then(reg => console.log('PWA Service Worker Registered', reg))
+    .catch(err => console.log('SW registration failed', err));
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const btn = document.getElementById('pwaInstallBtn');
+  if (btn) btn.style.display = 'inline-flex';
+  const card = document.getElementById('mobileInstallCard');
+  if (card) card.style.display = 'block';
+});
+
+function installPWAApp() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        console.log('User installed the PWA mobile app');
+      }
+      deferredPrompt = null;
+    });
+  } else {
+    alert("To install on iOS or Android: Tap your browser's share/menu button (⋮ or ⬆) and select 'Add to Home Screen'!");
+  }
+}
+
+function toggleFullScreenApp() {
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen();
+    } else if (document.documentElement.webkitRequestFullscreen) {
+      document.documentElement.webkitRequestFullscreen();
+    }
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    }
+  }
+}
+
+function switchToWebcamTab() {
+  const btn = document.getElementById('webcam-tab-btn');
+  if (btn) btn.click();
+}
+
+// Global Voice Alert & Audio Synthesizer Engine
+let speechMuted = false;
+
+function speakAlert(text) {
+  if (speechMuted) return;
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.05;
+    utterance.lang = 'en-US';
+
+    const indicator = document.getElementById('globalAudioIndicator');
+    if (indicator) indicator.style.opacity = '1';
+
+    utterance.onend = () => {
+      if (indicator) indicator.style.opacity = '0.5';
+    };
+
+    window.speechSynthesis.speak(utterance);
+  }
+}
+
+function testVoice() {
+  speakAlert("Traffic Sign Recognition and Road Safety Assistant is operational.");
+}
+</script>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

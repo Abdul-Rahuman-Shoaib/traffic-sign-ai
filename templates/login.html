@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Sign In | Traffic Sign AI Assistant{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="glass-card auth-card shadow-2xl">
+    <div class="text-center mb-4">
+      <div class="stat-icon-wrapper stat-icon-cyan mx-auto mb-3" style="width: 54px; height: 54px;">
+        <i class="fa-solid fa-traffic-light fs-3"></i>
+      </div>
+      <h3 class="brand-font text-white mb-1">Road Safety Assistant</h3>
+      <p class="text-secondary fs-8 mb-0">Vision-Based Traffic Sign Recognition System</p>
+      <span class="badge badge-cyber badge-info mt-2">PSN Engineering College &bull; Dept of CSE</span>
+    </div>
+
+    <form method="POST" action="{{ url_for('login') }}">
+      <div class="mb-3">
+        <label class="form-label-cyber">Username / Operator ID</label>
+        <div class="input-group">
+          <span class="input-group-text bg-dark border-secondary text-secondary"><i class="fa-solid fa-user"></i></span>
+          <input type="text" id="loginUsername" name="username" class="form-cyber-input" placeholder="Enter username..." required autofocus>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label-cyber">Password</label>
+        <div class="input-group">
+          <span class="input-group-text bg-dark border-secondary text-secondary"><i class="fa-solid fa-lock"></i></span>
+          <input type="password" id="loginPassword" name="password" class="form-cyber-input" placeholder="Enter password..." required>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-cyber-primary w-100 py-2 mb-3">
+        <i class="fa-solid fa-right-to-bracket"></i> Sign In to Assistant
+      </button>
+
+      <!-- Quick Demo Credentials Auto-Fill Button -->
+      <div class="p-2 rounded mb-3 text-center" style="background: rgba(12, 18, 34, 0.7); border: 1px dashed var(--border-subtle);">
+        <small class="text-secondary d-block mb-1">Quick Demo Credentials:</small>
+        <div class="d-flex justify-content-center gap-2">
+          <button type="button" class="btn btn-cyber-outline btn-sm py-0 px-2 fs-8" onclick="fillCredentials('admin', 'admin123')">
+            <i class="fa-solid fa-shield text-cyan"></i> Fill Admin
+          </button>
+          <button type="button" class="btn btn-cyber-outline btn-sm py-0 px-2 fs-8" onclick="fillCredentials('student', 'student123')">
+            <i class="fa-solid fa-graduation-cap text-blue"></i> Fill Student
+          </button>
+        </div>
+      </div>
+
+      <div class="text-center text-secondary fs-8">
+        Don't have an operator account? <a href="{{ url_for('register') }}" class="text-cyan text-decoration-none fw-semibold">Register New Account</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function fillCredentials(user, pass) {
+  document.getElementById('loginUsername').value = user;
+  document.getElementById('loginPassword').value = pass;
+}
+</script>
+{% endblock %}

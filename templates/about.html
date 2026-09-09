@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block title %}About Project & Team Presentation | Road Safety Assistant{% endblock %}
+
+{% block content %}
+<!-- Academic Presentation Hero Banner -->
+<div class="glass-card mb-4 text-center py-5 position-relative overflow-hidden">
+  <div class="position-absolute top-0 end-0 p-3 opacity-10">
+    <i class="fa-solid fa-graduation-cap" style="font-size: 140px; color: var(--accent-cyan);"></i>
+  </div>
+  
+  <span class="badge badge-cyber badge-info mb-3">FINAL YEAR PROJECT PRESENTATION &bull; 2026 - 2027</span>
+  <h2 class="display-6 fw-bold brand-font text-white mb-2">Vision-Based Traffic Sign Recognition and Road Safety Assistant</h2>
+  <p class="text-secondary mx-auto mb-4" style="max-width: 700px; font-size: 1.05rem;">
+    An AI-powered intelligent web application for real-time traffic sign detection, semantic driving rule interpretation, and automated spoken voice alerts.
+  </p>
+
+  <div class="d-inline-flex flex-wrap justify-content-center gap-4 p-3 rounded-4" style="background: rgba(12, 18, 34, 0.8); border: 1px solid var(--border-subtle);">
+    <div class="text-start">
+      <div class="text-tertiary fs-8 text-uppercase">INSTITUTION</div>
+      <div class="fw-bold text-white fs-6">PSN Engineering College, Tirunelveli</div>
+    </div>
+    <div class="vr bg-secondary opacity-25"></div>
+    <div class="text-start">
+      <div class="text-tertiary fs-8 text-uppercase">DEPARTMENT</div>
+      <div class="fw-bold text-cyan fs-6">B.E. Computer Science & Engineering</div>
+    </div>
+    <div class="vr bg-secondary opacity-25"></div>
+    <div class="text-start">
+      <div class="text-tertiary fs-8 text-uppercase">ACADEMIC YEAR</div>
+      <div class="fw-bold text-white fs-6">2026 - 2027</div>
+    </div>
+  </div>
+</div>
+
+<!-- Project Team Members Grid -->
+<div class="mb-5">
+  <h4 class="brand-font text-white mb-3 d-flex align-items-center gap-2">
+    <i class="fa-solid fa-users text-cyan"></i> Project Development Team
+  </h4>
+  <div class="row g-3">
+    <div class="col-md-6 col-lg-3">
+      <div class="glass-card text-center p-4 h-100">
+        <div class="stat-icon-wrapper stat-icon-cyan mx-auto mb-3" style="width: 60px; height: 60px;">
+          <i class="fa-solid fa-user-astronaut fs-4"></i>
+        </div>
+        <h5 class="text-white mb-1 brand-font">Abdul Rahuman Shoaib</h5>
+        <div class="badge badge-cyber badge-info mb-2">952323104001</div>
+        <div class="text-secondary fs-8">Lead Developer & Architecture</div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3">
+      <div class="glass-card text-center p-4 h-100">
+        <div class="stat-icon-wrapper stat-icon-blue mx-auto mb-3" style="width: 60px; height: 60px;">
+          <i class="fa-solid fa-user-gear fs-4"></i>
+        </div>
+        <h5 class="text-white mb-1 brand-font">Esakkiraja</h5>
+        <div class="badge badge-cyber badge-info mb-2">952323104009</div>
+        <div class="text-secondary fs-8">Computer Vision & Preprocessing</div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3">
+      <div class="glass-card text-center p-4 h-100">
+        <div class="stat-icon-wrapper stat-icon-emerald mx-auto mb-3" style="width: 60px; height: 60px;">
+          <i class="fa-solid fa-user-check fs-4"></i>
+        </div>
+        <h5 class="text-white mb-1 brand-font">Jebicson Francis</h5>
+        <div class="badge badge-cyber badge-info mb-2">952323104014</div>
+        <div class="text-secondary fs-8">Model Integration & Speech Engine</div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3">
+      <div class="glass-card text-center p-4 h-100">
+        <div class="stat-icon-wrapper stat-icon-amber mx-auto mb-3" style="width: 60px; height: 60px;">
+          <i class="fa-solid fa-user-shield fs-4"></i>
+        </div>
+        <h5 class="text-white mb-1 brand-font">K.G. Maharajan</h5>
+        <div class="badge badge-cyber badge-info mb-2">952323104501</div>
+        <div class="text-secondary fs-8">Database & Audit Reporting</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Architecture & Methodology Row -->
+<div class="row g-4 mb-5">
+  <div class="col-lg-6">
+    <div class="glass-card h-100">
+      <h5 class="brand-font text-white mb-3 d-flex align-items-center gap-2">
+        <i class="fa-solid fa-network-wired text-cyan"></i> System Architecture
+      </h5>
+      <div class="p-3 rounded mb-3" style="background: rgba(12, 18, 34, 0.85); border: 1px solid var(--border-subtle);">
+        <div class="d-flex flex-column gap-2 text-secondary fs-7">
+          <div class="p-2 rounded bg-dark border border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+            <span><i class="fa-solid fa-desktop text-info me-2"></i> 1. User Interface (Browser)</span>
+            <span class="text-tertiary">HTML5 / CSS3 / JS / Bootstrap</span>
+          </div>
+          <div class="text-center text-cyan fs-8"><i class="fa-solid fa-arrow-down"></i></div>
+          <div class="p-2 rounded bg-dark border border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+            <span><i class="fa-solid fa-server text-primary me-2"></i> 2. Flask App Server</span>
+            <span class="text-tertiary">Routes, Auth, Blueprints, Sessions</span>
+          </div>
+          <div class="text-center text-cyan fs-8"><i class="fa-solid fa-arrow-down"></i></div>
+          <div class="p-2 rounded bg-dark border border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+            <span><i class="fa-solid fa-brain text-cyan me-2"></i> 3. Detection Engine</span>
+            <span class="text-tertiary">OpenCV + YOLOv8 + CNN Classifier</span>
+          </div>
+          <div class="text-center text-cyan fs-8"><i class="fa-solid fa-arrow-down"></i></div>
+          <div class="p-2 rounded bg-dark border border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+            <span><i class="fa-solid fa-database text-warning me-2"></i> 4. Database & Speech Layer</span>
+            <span class="text-tertiary">SQLite & Web Speech API TTS</span>
+          </div>
+        </div>
+      </div>
+      <p class="text-secondary fs-8 mb-0">
+        Data flows bidirectionally: input frames/streams move downstream through OpenCV preprocessing to YOLOv8 inference, and results with safety rules return to the client browser for audio alert playback.
+      </p>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="glass-card h-100">
+      <h5 class="brand-font text-white mb-3 d-flex align-items-center gap-2">
+        <i class="fa-solid fa-list-ol text-cyan"></i> Step-by-Step Methodology
+      </h5>
+      <ul class="list-unstyled d-flex flex-column gap-3 mb-0">
+        <li class="d-flex gap-3">
+          <span class="badge badge-cyber badge-info rounded-circle flex-shrink-0" style="width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;">1</span>
+          <div>
+            <strong class="text-white fs-7">Image/Video Upload or Live Feed Capture</strong>
+            <div class="text-secondary fs-8">User selects an image, driving video, or enables continuous webcam mode.</div>
+          </div>
+        </li>
+        <li class="d-flex gap-3">
+          <span class="badge badge-cyber badge-info rounded-circle flex-shrink-0" style="width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;">2</span>
+          <div>
+            <strong class="text-white fs-7">OpenCV Color & Geometry Preprocessing</strong>
+            <div class="text-secondary fs-8">HSV color channel separation, noise suppression, and contour segmentation.</div>
+          </div>
+        </li>
+        <li class="d-flex gap-3">
+          <span class="badge badge-cyber badge-info rounded-circle flex-shrink-0" style="width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;">3</span>
+          <div>
+            <strong class="text-white fs-7">Sign Localization & HUD Annotation</strong>
+            <div class="text-secondary fs-8">Bounding box coordinates extracted and styled with cybernetic HUD brackets.</div>
+          </div>
+        </li>
+        <li class="d-flex gap-3">
+          <span class="badge badge-cyber badge-info rounded-circle flex-shrink-0" style="width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;">4</span>
+          <div>
+            <strong class="text-white fs-7">Deep Classification & Spoken Voice Alert</strong>
+            <div class="text-secondary fs-8">Identifies 10 standard sign classes, computes certainty %, and triggers TTS voice alert.</div>
+          </div>
+        </li>
+        <li class="d-flex gap-3">
+          <span class="badge badge-cyber badge-info rounded-circle flex-shrink-0" style="width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;">5</span>
+          <div>
+            <strong class="text-white fs-7">Database Archival & PDF Audit Export</strong>
+            <div class="text-secondary fs-8">Stores timestamped log in SQLite and provides downloadable diagnostic PDF report.</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 9 Core Modules Breakdown -->
+<div class="glass-card mb-4">
+  <h4 class="brand-font text-white mb-3 d-flex align-items-center gap-2">
+    <i class="fa-solid fa-cubes text-cyan"></i> 9 Core Project Modules
+  </h4>
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="p-3 rounded h-100" style="background: rgba(12, 18, 34, 0.6); border: 1px solid var(--border-subtle);">
+        <div class="fw-bold text-white fs-7 mb-1"><i class="fa-solid fa-lock text-cyan me-1"></i> 1. Auth Module</div>
+        <div class="text-secondary fs-8">Session authentication, Werkzeug password hashing, and role-based permissions.</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="p-3 rounded h-100" style="background: rgba(12, 18, 34, 0.6); border: 1px solid var(--border-subtle);">
+        <div class="fw-bold text-white fs-7 mb-1"><i class="fa-solid fa-file-image text-blue me-1"></i> 2. Image Detection</div>
+        <div class="text-secondary fs-8">Single photo upload & 1-click test sample gallery with HUD overlays.</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="p-3 rounded h-100" style="background: rgba(12, 18, 34, 0.6); border: 1px solid var(--border-subtle);">
+        <div class="fw-bold text-white fs-7 mb-1"><i class="fa-solid fa-film text-indigo me-1"></i> 3. Video Detection</div>
+        <div class="text-secondary fs-8">Extracts and processes sampled keyframes across uploaded driving video footage.</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="p-3 rounded h-100" style="background: rgba(12, 18, 34, 0.6); border: 1px solid var(--border-subtle);">
+        <div class="fw-bold text-white fs-7 mb-1"><i class="fa-solid fa-video text-emerald me-1"></i> 4. Live Webcam HUD</div>
+        <div class="text-secondary fs-8">Real-time driver assistant mode with autonomous 2-second scanning loop.</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="p-3 rounded h-100" style="background: rgba(12, 18, 34, 0.6); border: 1px solid var(--border-subtle);">
+        <div class="fw-bold text-white fs-7 mb-1"><i class="fa-solid fa-volume-high text-amber me-1"></i> 5. Spoken Voice Alerts</div>
+        <div class="text-secondary fs-8">Web Speech API synthesizes driving safety advisories for zero-distraction driver aid.</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="p-3 rounded h-100" style="background: rgba(12, 18, 34, 0.6); border: 1px solid var(--border-subtle);">
+        <div class="fw-bold text-white fs-7 mb-1"><i class="fa-solid fa-chart-pie text-cyan me-1"></i> 6. Analytics Dashboard</div>
+        <div class="text-secondary fs-8">Live statistical metric cards and Chart.js sign category breakdown charts.</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="p-3 rounded h-100" style="background: rgba(12, 18, 34, 0.6); border: 1px solid var(--border-subtle);">
+        <div class="fw-bold text-white fs-7 mb-1"><i class="fa-solid fa-clock-rotate-left text-rose me-1"></i> 7. Detection History</div>
+        <div class="text-secondary fs-8">Searchable and filterable database audit log with confidence visualizers.</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="p-3 rounded h-100" style="background: rgba(12, 18, 34, 0.6); border: 1px solid var(--border-subtle);">
+        <div class="fw-bold text-white fs-7 mb-1"><i class="fa-solid fa-file-pdf text-purple me-1"></i> 8. PDF Reports</div>
+        <div class="text-secondary fs-8">Generates downloadable formal inspection reports with PSN Engineering College banner.</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="p-3 rounded h-100" style="background: rgba(12, 18, 34, 0.6); border: 1px solid var(--border-subtle);">
+        <div class="fw-bold text-white fs-7 mb-1"><i class="fa-solid fa-shield-halved text-danger me-1"></i> 9. Admin Panel</div>
+        <div class="text-secondary fs-8">Comprehensive user administration, privilege toggles, and server diagnostics.</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

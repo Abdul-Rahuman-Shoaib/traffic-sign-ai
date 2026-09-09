@@ -1,0 +1,618 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | Traffic Sign AI Assistant{% endblock %}
+
+{% block content %}
+<!-- Top Metrics Row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="glass-card stat-card glass-card-glow-cyan h-100">
+      <div class="stat-icon-wrapper stat-icon-cyan">
+        <i class="fa-solid fa-camera-retro"></i>
+      </div>
+      <div>
+        <div class="stat-val" id="statTotalCount">{{ total_user_detections|default(recent|length) }}</div>
+        <div class="stat-lbl">Total Scans</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="glass-card stat-card h-100">
+      <div class="stat-icon-wrapper stat-icon-blue">
+        <i class="fa-solid fa-bullseye"></i>
+      </div>
+      <div>
+        <div class="stat-val text-info">94.2%</div>
+        <div class="stat-lbl">Accuracy</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="glass-card stat-card h-100">
+      <div class="stat-icon-wrapper stat-icon-amber">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <div>
+        <div class="stat-val text-warning">{{ warning_count|default(3) }}</div>
+        <div class="stat-lbl">Warning Alerts</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="glass-card stat-card h-100">
+      <div class="stat-icon-wrapper stat-icon-emerald">
+        <i class="fa-solid fa-shapes"></i>
+      </div>
+      <div>
+        <div class="stat-val text-success">10</div>
+        <div class="stat-lbl">Sign Classes</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Detection Workspace & Real-Time Console -->
+<div class="row g-4 mb-4">
+  <!-- Left Column: Multi-Source Detection Hub -->
+  <div class="col-xl-7">
+    <div class="glass-card">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0 brand-font text-white d-flex align-items-center gap-2">
+          <i class="fa-solid fa-microchip text-cyan"></i> AI Detection Hub
+        </h5>
+        <span class="badge badge-cyber badge-info"><i class="fa-solid fa-bolt"></i> Mobile & PC Vision</span>
+      </div>
+
+      <!-- Navigation Tabs for Detection Modes -->
+      <ul class="nav nav-tabs cyber-tabs mb-4" id="detectionTabs" role="tablist">
+        <li class="nav-item">
+          <button class="nav-link active" id="upload-tab-btn" data-bs-toggle="tab" data-bs-target="#tab-upload" type="button">
+            <i class="fa-solid fa-file-image me-1"></i> Upload Image
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" id="webcam-tab-btn" data-bs-toggle="tab" data-bs-target="#tab-webcam" type="button">
+            <i class="fa-solid fa-video me-1"></i> Live Camera HUD
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" id="video-tab-btn" data-bs-toggle="tab" data-bs-target="#tab-video" type="button">
+            <i class="fa-solid fa-film me-1"></i> Video Analysis
+          </button>
+        </li>
+      </ul>
+
+      <div class="tab-content" id="detectionTabsContent">
+        <!-- Tab 1: Image Upload & Sample Gallery -->
+        <div class="tab-pane fade show active" id="tab-upload">
+          <div class="mb-3">
+            <label class="form-label-cyber">Upload Driving Image or Road Sign Photo</label>
+            <input type="file" id="imageFileInput" accept="image/*" class="form-cyber-input">
+          </div>
+
+          <div class="d-flex gap-2 mb-4">
+            <button class="btn btn-cyber-primary w-100 py-2" onclick="processUploadedImage()">
+              <i class="fa-solid fa-magnifying-glass"></i> Analyze & Recognize Sign
+            </button>
+          </div>
+
+          <!-- 1-Click Sample Testing Gallery -->
+          <div class="border-top pt-3" style="border-color: var(--border-subtle) !important;">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="form-label-cyber mb-0"><i class="fa-solid fa-wand-magic-sparkles text-cyan"></i> Instant Test Samples (1-Click Test)</span>
+              <small class="text-tertiary">Select any sample to test detection</small>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+              <div class="sample-pill" onclick="testSample('sample_stop.jpg', 'Stop Sign')">
+                <img src="{{ url_for('static', filename='samples/sample_stop.jpg') }}" class="sample-thumb">
+                <span>Stop Sign</span>
+              </div>
+              <div class="sample-pill" onclick="testSample('sample_speed_50.jpg', 'Speed Limit 50')">
+                <img src="{{ url_for('static', filename='samples/sample_speed_50.jpg') }}" class="sample-thumb">
+                <span>Speed 50</span>
+              </div>
+              <div class="sample-pill" onclick="testSample('sample_speed_80.jpg', 'Speed Limit 80')">
+                <img src="{{ url_for('static', filename='samples/sample_speed_80.jpg') }}" class="sample-thumb">
+                <span>Speed 80</span>
+              </div>
+              <div class="sample-pill" onclick="testSample('sample_yield.jpg', 'Yield')">
+                <img src="{{ url_for('static', filename='samples/sample_yield.jpg') }}" class="sample-thumb">
+                <span>Yield</span>
+              </div>
+              <div class="sample-pill" onclick="testSample('sample_pedestrian.jpg', 'Pedestrian Crossing')">
+                <img src="{{ url_for('static', filename='samples/sample_pedestrian.jpg') }}" class="sample-thumb">
+                <span>Pedestrian</span>
+              </div>
+              <div class="sample-pill" onclick="testSample('sample_turn_right.jpg', 'Turn Right')">
+                <img src="{{ url_for('static', filename='samples/sample_turn_right.jpg') }}" class="sample-thumb">
+                <span>Turn Right</span>
+              </div>
+              <div class="sample-pill" onclick="testSample('sample_no_entry.jpg', 'No Entry')">
+                <img src="{{ url_for('static', filename='samples/sample_no_entry.jpg') }}" class="sample-thumb">
+                <span>No Entry</span>
+              </div>
+              <div class="sample-pill" onclick="testSample('sample_traffic_light.jpg', 'Traffic Light')">
+                <img src="{{ url_for('static', filename='samples/sample_traffic_light.jpg') }}" class="sample-thumb">
+                <span>Traffic Light</span>
+              </div>
+              <div class="sample-pill" onclick="testSample('sample_school_zone.jpg', 'School Zone')">
+                <img src="{{ url_for('static', filename='samples/sample_school_zone.jpg') }}" class="sample-thumb">
+                <span>School Zone</span>
+              </div>
+              <div class="sample-pill" onclick="testSample('sample_road_work.jpg', 'Road Work')">
+                <img src="{{ url_for('static', filename='samples/sample_road_work.jpg') }}" class="sample-thumb">
+                <span>Road Work</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Live Webcam HUD -->
+        <div class="tab-pane fade" id="tab-webcam">
+          <div class="hud-container mb-3 position-relative">
+            <video id="webcamVideo" autoplay playsinline class="w-100 h-100" style="object-fit:cover; border-radius: var(--radius-md); max-height: 380px;"></video>
+            <div class="hud-grid-overlay"></div>
+            <div class="hud-corner hud-corner-tl"></div>
+            <div class="hud-corner hud-corner-tr"></div>
+            <div class="hud-corner hud-corner-bl"></div>
+            <div class="hud-corner hud-corner-br"></div>
+            <div class="hud-scanner" id="webcamScanner"></div>
+            <canvas id="webcamCanvas" style="display:none;"></canvas>
+            <div id="cameraOfflineNotice" class="text-center p-4">
+              <i class="fa-solid fa-video-slash fs-1 text-secondary mb-2"></i>
+              <div class="text-secondary fw-semibold">Live Camera Stream is Standby</div>
+              <div class="text-tertiary fs-7">Supports PC Webcams & Mobile Dashcam Rear Cameras</div>
+            </div>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between">
+            <div class="d-flex gap-2">
+              <button class="btn btn-cyber-cyan" id="startCamBtn" onclick="toggleWebcam()">
+                <i class="fa-solid fa-play"></i> Start Camera
+              </button>
+              <button class="btn btn-cyber-outline btn-sm" id="flipCamBtn" onclick="flipCamera()" title="Switch Front/Rear Camera (Mobile)">
+                <i class="fa-solid fa-camera-rotate"></i> Flip
+              </button>
+              <button class="btn btn-cyber-primary" id="captureBtn" onclick="captureAndDetect()" disabled>
+                <i class="fa-solid fa-camera"></i> Capture & Scan
+              </button>
+            </div>
+            <div class="form-check form-switch text-secondary">
+              <input class="form-check-input" type="checkbox" id="continuousDetectSwitch" onchange="toggleContinuousMode(this.checked)" disabled>
+              <label class="form-check-label" for="continuousDetectSwitch" style="font-size:0.85rem;">Autonomous Live Detection (2s Loop)</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Video File Analysis -->
+        <div class="tab-pane fade" id="tab-video">
+          <div class="mb-3">
+            <label class="form-label-cyber">Upload Road Trip Video (.mp4 / .avi / .mov)</label>
+            <input type="file" id="videoFileInput" accept="video/*" class="form-cyber-input">
+          </div>
+          <button class="btn btn-cyber-cyan w-100 mb-3 py-2" onclick="processVideoFile()">
+            <i class="fa-solid fa-microchip"></i> Extract Frames & Analyze Video Timeline
+          </button>
+          
+          <div id="videoProcessingProgress" style="display:none;" class="text-center py-3">
+            <div class="spinner-border text-cyan mb-2" role="status"></div>
+            <div class="text-secondary" style="font-size:0.88rem;">Processing video stream and segmenting keyframes...</div>
+          </div>
+
+          <div id="videoResultsTimeline" style="display:none;" class="mt-3">
+            <h6 class="text-cyan brand-font mb-2"><i class="fa-solid fa-timeline"></i> Video Detection Timeline</h6>
+            <div class="d-flex gap-2 overflow-auto pb-2" id="videoFramesCarousel"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Real-Time Detection Result & Safety Advisory Console -->
+  <div class="col-xl-5">
+    <div class="glass-card h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0 brand-font text-white d-flex align-items-center gap-2">
+          <i class="fa-solid fa-tv text-cyan"></i> Live AI Vision HUD
+        </h5>
+        <span id="detectionStatusBadge" class="badge badge-cyber badge-success">READY</span>
+      </div>
+
+      <!-- Detection Visualization Display -->
+      <div class="hud-container mb-3" style="min-height: 240px; max-height: 280px;">
+        <img id="detectedImagePreview" src="{{ url_for('static', filename='samples/sample_stop.jpg') }}" class="w-100 h-100" style="object-fit:contain; border-radius: var(--radius-md);">
+        <div class="hud-corner hud-corner-tl"></div>
+        <div class="hud-corner hud-corner-tr"></div>
+        <div class="hud-corner hud-corner-bl"></div>
+        <div class="hud-corner hud-corner-br"></div>
+      </div>
+
+      <!-- Detected Sign Card & Safety Advisory -->
+      <div id="resultDetailsCard" class="result-banner">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <div class="text-tertiary" style="font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase;">IDENTIFIED TRAFFIC SIGN</div>
+            <h4 class="text-white mb-0 brand-font" id="resultSignLabel">Stop Sign</h4>
+          </div>
+          <span class="badge badge-cyber badge-danger" id="resultCategoryBadge">Regulatory / Prohibitory</span>
+        </div>
+
+        <div class="mb-3">
+          <div class="d-flex justify-content-between text-secondary" style="font-size: 0.8rem;">
+            <span>Recognition Confidence</span>
+            <span class="fw-bold text-cyan" id="resultConfidenceText">96.0%</span>
+          </div>
+          <div class="conf-bar-track">
+            <div class="conf-bar-fill" id="resultConfidenceBar" style="width: 96%;"></div>
+          </div>
+        </div>
+
+        <div class="mb-2">
+          <div class="text-secondary fw-semibold mb-1" style="font-size:0.8rem;"><i class="fa-solid fa-circle-info text-cyan me-1"></i> Sign Meaning:</div>
+          <p class="text-white mb-2" id="resultSignMeaning" style="font-size:0.86rem; line-height: 1.4;">
+            Mandatory complete stop before the stop line or intersection.
+          </p>
+        </div>
+
+        <div class="p-2 rounded" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.25);" id="safetyBox">
+          <div class="text-danger fw-bold mb-1" style="font-size:0.78rem;"><i class="fa-solid fa-shield-halved me-1"></i> Required Driver Action:</div>
+          <p class="text-white mb-0" id="resultSafetyTip" style="font-size:0.84rem; line-height: 1.35;">
+            Bring the vehicle to a complete stop, scan for pedestrians and oncoming traffic from all directions, and proceed only when clear.
+          </p>
+        </div>
+
+        <div class="mt-3 d-flex gap-2">
+          <button class="btn btn-cyber-outline btn-sm w-100" onclick="repeatVoiceAlert()">
+            <i class="fa-solid fa-volume-high text-cyan"></i> Repeat Voice Alert
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Analytics & Recent Activity Row -->
+<div class="row g-4">
+  <!-- Chart.js Sign Category Analytics -->
+  <div class="col-lg-5">
+    <div class="glass-card h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="brand-font text-white mb-0"><i class="fa-solid fa-chart-pie text-cyan me-2"></i> Sign Category Distribution</h6>
+        <span class="text-tertiary fs-7">Real-Time</span>
+      </div>
+      <div style="height: 220px; position: relative;">
+        <canvas id="categoryDistributionChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Detections Quick Table -->
+  <div class="col-lg-7">
+    <div class="glass-card h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="brand-font text-white mb-0"><i class="fa-solid fa-list-check text-cyan me-2"></i> Recent Detection Audit Log</h6>
+        <div class="d-flex gap-2">
+          <a href="{{ url_for('history') }}" class="btn btn-cyber-outline btn-sm py-1 px-2" style="font-size:0.8rem;">
+            Full Log <i class="fa-solid fa-arrow-right ms-1"></i>
+          </a>
+          <a href="{{ url_for('report_pdf') }}" class="btn btn-cyber-primary btn-sm py-1 px-2" style="font-size:0.8rem;">
+            <i class="fa-solid fa-file-pdf"></i> PDF
+          </a>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table-cyber">
+          <thead>
+            <tr>
+              <th>Sign</th>
+              <th>Category</th>
+              <th>Certainty</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody id="recentTableBody">
+            {% if recent %}
+              {% for d in recent %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <img src="{{ url_for('static', filename=d.image_path) }}" class="rounded" width="36" height="36" style="object-fit:cover;">
+                    <span class="fw-semibold text-white">{{ d.label }}</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge badge-cyber {% if 'Stop' in d.label or 'Entry' in d.label %}badge-danger{% elif 'Speed' in d.label or 'Yield' in d.label %}badge-warning{% else %}badge-info{% endif %}">
+                    {{ d.label.split('(')[0] }}
+                  </span>
+                </td>
+                <td>
+                  <span class="text-cyan fw-bold">{{ (d.confidence * 100)|round(1) }}%</span>
+                </td>
+                <td class="text-secondary fs-7">{{ d.timestamp.strftime('%H:%M &bull; %d %b')|safe }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="4" class="text-center text-muted py-3">No detection records logged yet. Try testing a sample sign above!</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let lastSpokenText = "Caution: Stop sign ahead. Bring vehicle to a complete stop.";
+let webcamStream = null;
+let continuousLoopInterval = null;
+let currentFacingMode = "user"; // "user" or "environment" (rear camera for mobile)
+
+// Initialize Chart.js Doughnut Chart
+document.addEventListener('DOMContentLoaded', () => {
+  const ctx = document.getElementById('categoryDistributionChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Prohibitory / Stop', 'Speed Limits', 'Warning / Caution', 'Mandatory / Directions', 'Pedestrian / School'],
+      datasets: [{
+        data: [35, 25, 20, 12, 8],
+        backgroundColor: [
+          '#ef4444',
+          '#f59e0b',
+          '#06b6d4',
+          '#3b82f6',
+          '#10b981'
+        ],
+        borderWidth: 0,
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: {
+            color: '#94a3b8',
+            font: { family: 'Plus Jakarta Sans', size: 11 },
+            boxWidth: 12
+          }
+        }
+      },
+      cutout: '70%'
+    }
+  });
+});
+
+// Update Detection Console with Results
+function updateConsole(results, imageUrl) {
+  if (!results || results.length === 0) {
+    document.getElementById('resultSignLabel').textContent = "No Sign Detected";
+    document.getElementById('resultCategoryBadge').textContent = "Unknown";
+    document.getElementById('resultConfidenceText').textContent = "0.0%";
+    document.getElementById('resultConfidenceBar').style.width = "0%";
+    document.getElementById('resultSignMeaning').textContent = "No recognized road sign pattern detected in the visual frame.";
+    document.getElementById('resultSafetyTip').textContent = "Continue normal attentive driving and maintain vigilance.";
+    speakAlert("No traffic signs detected.");
+    return;
+  }
+
+  const primary = results[0];
+  document.getElementById('detectedImagePreview').src = imageUrl;
+  document.getElementById('resultSignLabel').textContent = primary.label;
+  document.getElementById('resultCategoryBadge').textContent = primary.category || "Road Safety Sign";
+  
+  const confPercent = (primary.confidence * 100).toFixed(1);
+  document.getElementById('resultConfidenceText').textContent = confPercent + "%";
+  document.getElementById('resultConfidenceBar').style.width = confPercent + "%";
+  
+  document.getElementById('resultSignMeaning').textContent = primary.meaning || "Standard traffic regulatory sign.";
+  document.getElementById('resultSafetyTip').textContent = primary.safety_tip || "Follow road safety guidelines.";
+  
+  lastSpokenText = primary.voice_alert || `Detected ${primary.label}. Please drive safely.`;
+  speakAlert(lastSpokenText);
+
+  const countElem = document.getElementById('statTotalCount');
+  if (countElem) {
+    const current = parseInt(countElem.textContent) || 0;
+    countElem.textContent = current + 1;
+  }
+}
+
+// 1-Click Sample Test Trigger
+async function testSample(filename, label) {
+  document.getElementById('detectionStatusBadge').textContent = "ANALYZING...";
+  document.getElementById('detectionStatusBadge').className = "badge badge-cyber badge-warning";
+  
+  const sampleUrl = `/static/samples/${filename}`;
+  try {
+    const response = await fetch(sampleUrl);
+    const blob = await response.blob();
+    const formData = new FormData();
+    formData.append("image", blob, filename);
+
+    const res = await fetch("/detect", { method: "POST", body: formData });
+    const data = await res.json();
+    
+    document.getElementById('detectionStatusBadge').textContent = "RECOGNIZED";
+    document.getElementById('detectionStatusBadge').className = "badge badge-cyber badge-success";
+    updateConsole(data.results, data.image_url);
+  } catch (err) {
+    console.error(err);
+    document.getElementById('detectionStatusBadge').textContent = "ERROR";
+  }
+}
+
+// Uploaded Image Handler
+async function processUploadedImage() {
+  const fileInput = document.getElementById('imageFileInput');
+  if (!fileInput.files.length) {
+    alert("Please select an image file first.");
+    return;
+  }
+  
+  const formData = new FormData();
+  formData.append("image", fileInput.files[0]);
+
+  document.getElementById('detectionStatusBadge').textContent = "SCANNING...";
+  try {
+    const res = await fetch("/detect", { method: "POST", body: formData });
+    const data = await res.json();
+    document.getElementById('detectionStatusBadge').textContent = "COMPLETED";
+    updateConsole(data.results, data.image_url);
+  } catch (e) {
+    console.error(e);
+    alert("Error processing image.");
+  }
+}
+
+// Webcam Controls with Mobile Flip Support
+async function initWebcamStream() {
+  const video = document.getElementById('webcamVideo');
+  const notice = document.getElementById('cameraOfflineNotice');
+  const startBtn = document.getElementById('startCamBtn');
+  const captureBtn = document.getElementById('captureBtn');
+  const switchBtn = document.getElementById('continuousDetectSwitch');
+  const scanner = document.getElementById('webcamScanner');
+
+  if (webcamStream) {
+    webcamStream.getTracks().forEach(t => t.stop());
+  }
+
+  try {
+    const constraints = {
+      video: {
+        facingMode: currentFacingMode,
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      }
+    };
+    webcamStream = await navigator.mediaDevices.getUserMedia(constraints);
+    video.srcObject = webcamStream;
+    notice.style.display = 'none';
+    scanner.style.display = 'block';
+    startBtn.innerHTML = '<i class="fa-solid fa-stop"></i> Stop Camera';
+    startBtn.className = 'btn btn-cyber-outline';
+    captureBtn.disabled = false;
+    switchBtn.disabled = false;
+  } catch (err) {
+    alert("Could not access camera: " + err.message);
+  }
+}
+
+function toggleWebcam() {
+  if (!webcamStream) {
+    initWebcamStream();
+  } else {
+    webcamStream.getTracks().forEach(t => t.stop());
+    webcamStream = null;
+    document.getElementById('webcamVideo').srcObject = null;
+    document.getElementById('cameraOfflineNotice').style.display = 'block';
+    document.getElementById('webcamScanner').style.display = 'none';
+    document.getElementById('startCamBtn').innerHTML = '<i class="fa-solid fa-play"></i> Start Camera';
+    document.getElementById('startCamBtn').className = 'btn btn-cyber-cyan';
+    document.getElementById('captureBtn').disabled = true;
+    document.getElementById('continuousDetectSwitch').disabled = true;
+    toggleContinuousMode(false);
+  }
+}
+
+function flipCamera() {
+  currentFacingMode = (currentFacingMode === "user") ? "environment" : "user";
+  if (webcamStream) {
+    initWebcamStream();
+  } else {
+    toggleWebcam();
+  }
+}
+
+function captureAndDetect() {
+  if (!webcamStream) return;
+  const video = document.getElementById('webcamVideo');
+  const canvas = document.getElementById('webcamCanvas');
+  canvas.width = video.videoWidth || 640;
+  canvas.height = video.videoHeight || 480;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  canvas.toBlob(async (blob) => {
+    const formData = new FormData();
+    formData.append("image", blob, "webcam_snap.jpg");
+    const res = await fetch("/detect", { method: "POST", body: formData });
+    const data = await res.json();
+    updateConsole(data.results, data.image_url);
+  }, "image/jpeg", 0.92);
+}
+
+function toggleContinuousMode(enable) {
+  if (enable) {
+    continuousLoopInterval = setInterval(() => {
+      captureAndDetect();
+    }, 2500);
+  } else {
+    if (continuousLoopInterval) {
+      clearInterval(continuousLoopInterval);
+      continuousLoopInterval = null;
+    }
+  }
+}
+
+// Process Video File
+async function processVideoFile() {
+  const fileInput = document.getElementById('videoFileInput');
+  if (!fileInput.files.length) {
+    alert("Please select a video file first.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("video", fileInput.files[0]);
+
+  document.getElementById('videoProcessingProgress').style.display = 'block';
+  document.getElementById('videoResultsTimeline').style.display = 'none';
+
+  try {
+    const res = await fetch("/detect-video", { method: "POST", body: formData });
+    const data = await res.json();
+    document.getElementById('videoProcessingProgress').style.display = 'none';
+
+    if (data.timeline && data.timeline.length > 0) {
+      document.getElementById('videoResultsTimeline').style.display = 'block';
+      const container = document.getElementById('videoFramesCarousel');
+      container.innerHTML = '';
+      
+      data.timeline.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'glass-card p-2 text-center flex-shrink-0';
+        div.style.width = '140px';
+        div.innerHTML = `
+          <img src="/static/${item.frame_image}" class="rounded w-100 mb-1" style="height:80px; object-fit:cover;">
+          <div class="fw-bold text-white fs-7 text-truncate">${item.label}</div>
+          <div class="text-cyan fs-8">${item.timestamp_sec}s &bull; ${(item.confidence*100).toFixed(0)}%</div>
+        `;
+        container.appendChild(div);
+      });
+
+      updateConsole([data.timeline[0]], `/static/${data.timeline[0].frame_image}`);
+    } else {
+      alert("Video processed: No distinct traffic signs detected in sampled frames.");
+    }
+  } catch (err) {
+    document.getElementById('videoProcessingProgress').style.display = 'none';
+    alert("Error processing video file.");
+  }
+}
+
+function repeatVoiceAlert() {
+  speakAlert(lastSpokenText);
+}
+</script>
+{% endblock %}

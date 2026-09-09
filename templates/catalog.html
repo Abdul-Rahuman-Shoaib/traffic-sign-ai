@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Road Sign Knowledge Base | Traffic Sign AI Assistant{% endblock %}
+
+{% block content %}
+<div class="glass-card mb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div>
+      <h4 class="brand-font text-white mb-1 d-flex align-items-center gap-2">
+        <i class="fa-solid fa-book-open-reader text-cyan"></i> Educational Road Sign Library
+      </h4>
+      <p class="text-secondary mb-0" style="font-size: 0.85rem;">
+        Official Indian & International Road Sign Specifications, Safety Advisories, and Model Recognition Specifications.
+      </p>
+    </div>
+    <span class="badge badge-cyber badge-info fs-7">
+      <i class="fa-solid fa-layer-group"></i> 10 Standard Sign Classes
+    </span>
+  </div>
+</div>
+
+<!-- Search & Category Filter Pills -->
+<div class="d-flex flex-wrap gap-2 mb-4 align-items-center">
+  <button class="btn btn-cyber-cyan btn-sm filter-pill active" onclick="filterCatalog('all', this)">All Signs (10)</button>
+  <button class="btn btn-cyber-outline btn-sm filter-pill" onclick="filterCatalog('Regulatory', this)">Regulatory & Stop</button>
+  <button class="btn btn-cyber-outline btn-sm filter-pill" onclick="filterCatalog('Warning', this)">Warning & Caution</button>
+  <button class="btn btn-cyber-outline btn-sm filter-pill" onclick="filterCatalog('Mandatory', this)">Mandatory</button>
+  <button class="btn btn-cyber-outline btn-sm filter-pill" onclick="filterCatalog('Priority', this)">Priority</button>
+</div>
+
+<!-- Grid of Sign Cards -->
+<div class="row g-4" id="catalogGrid">
+  {% for key, s in sign_catalog.items() %}
+  <div class="col-md-6 col-xl-4 catalog-item" data-category="{{ s.category }}">
+    <div class="glass-card h-100 d-flex flex-column">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="stat-icon-wrapper {% if 'danger' in s.severity %}stat-icon-amber{% elif 'warning' in s.severity %}stat-icon-cyan{% else %}stat-icon-blue{% endif %}" style="width:48px; height:48px;">
+            <i class="fa-solid {{ s.icon }}"></i>
+          </div>
+          <div>
+            <h5 class="text-white mb-0 brand-font fs-6">{{ s.name }}</h5>
+            <span class="text-tertiary fs-8">{{ s.shape }} &bull; {{ s.color }}</span>
+          </div>
+        </div>
+        <span class="badge badge-cyber {% if 'danger' in s.severity %}badge-danger{% elif 'warning' in s.severity %}badge-warning{% else %}badge-info{% endif %}" style="font-size:0.7rem;">
+          {{ s.category.split('/')[0] }}
+        </span>
+      </div>
+
+      <div class="mb-3 flex-grow-1">
+        <div class="text-secondary fw-semibold mb-1" style="font-size: 0.8rem;"><i class="fa-solid fa-circle-info text-cyan me-1"></i> Regulatory Meaning:</div>
+        <p class="text-white mb-2" style="font-size: 0.86rem; line-height: 1.45;">
+          {{ s.meaning }}
+        </p>
+
+        <div class="p-2 rounded mb-2" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-subtle);">
+          <div class="text-cyan fw-bold mb-1" style="font-size: 0.76rem;"><i class="fa-solid fa-shield-halved me-1"></i> Driving Advisory:</div>
+          <p class="text-secondary mb-0" style="font-size: 0.82rem; line-height: 1.35;">
+            {{ s.safety_tip }}
+          </p>
+        </div>
+      </div>
+
+      <div class="d-flex gap-2 pt-2 border-top" style="border-color: var(--border-subtle) !important;">
+        <button class="btn btn-cyber-outline btn-sm w-100" onclick="speakAlert('{{ s.voice_alert }}')">
+          <i class="fa-solid fa-volume-high text-cyan"></i> Voice Alert
+        </button>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-cyber-primary btn-sm w-100">
+          <i class="fa-solid fa-camera"></i> Test Model
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterCatalog(category, btn) {
+  document.querySelectorAll('.filter-pill').forEach(b => {
+    b.className = 'btn btn-cyber-outline btn-sm filter-pill';
+  });
+  btn.className = 'btn btn-cyber-cyan btn-sm filter-pill active';
+
+  const items = document.querySelectorAll('.catalog-item');
+  items.forEach(item => {
+    const itemCat = item.getAttribute('data-category') || '';
+    if (category === 'all' || itemCat.toLowerCase().includes(category.toLowerCase())) {
+      item.style.display = '';
+    } else {
+      item.style.display = 'none';
+    }
+  });
+}
+</script>
+{% endblock %}
