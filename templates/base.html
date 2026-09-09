@@ -87,7 +87,7 @@
         </button>
 
         <!-- Voice Assistant Status Widget -->
-        <div class="d-none d-md-flex align-items-center gap-2 px-3 py-1 rounded-pill" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25);">
+        <div class="d-flex align-items-center gap-2 px-2 px-md-3 py-1 rounded-pill" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25);">
           <div class="audio-pulse-indicator" id="globalAudioIndicator">
             <div class="audio-bar"></div>
             <div class="audio-bar"></div>
@@ -265,31 +265,81 @@ function switchToWebcamTab() {
   if (btn) btn.click();
 }
 
-// Global Voice Alert & Audio Synthesizer Engine
+// Global Voice Alert & Audio Synthesizer Engine (Mobile & WebView Optimized)
 let speechMuted = false;
+let globalAudio = new Audio();
+let audioUnlocked = false;
+
+// Pre-unlock audio on first touch/click (Android WebView & Mobile Chrome policy)
+function unlockAudioOnGesture() {
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+  if ('speechSynthesis' in window) {
+    try {
+      const silent = new SpeechSynthesisUtterance('');
+      silent.volume = 0;
+      window.speechSynthesis.speak(silent);
+    } catch(e) {}
+  }
+}
+document.addEventListener('click', unlockAudioOnGesture, { once: true });
+document.addEventListener('touchstart', unlockAudioOnGesture, { once: true });
 
 function speakAlert(text) {
-  if (speechMuted) return;
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1.0;
-    utterance.pitch = 1.05;
-    utterance.lang = 'en-US';
+  if (speechMuted || !text) return;
 
-    const indicator = document.getElementById('globalAudioIndicator');
-    if (indicator) indicator.style.opacity = '1';
+  const indicator = document.getElementById('globalAudioIndicator');
+  if (indicator) indicator.style.opacity = '1';
 
-    utterance.onend = () => {
+  // Strategy 1: HTML5 Audio streaming via /api/tts (Works 100% on Android WebViews, APKs, iOS, Chrome)
+  try {
+    if (!globalAudio) {
+      globalAudio = new Audio();
+    }
+    globalAudio.pause();
+    globalAudio.src = '/api/tts?text=' + encodeURIComponent(text);
+
+    globalAudio.onended = () => {
       if (indicator) indicator.style.opacity = '0.5';
     };
 
-    window.speechSynthesis.speak(utterance);
+    const playPromise = globalAudio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(err => {
+        console.warn("Audio playback blocked, trying SpeechSynthesis fallback:", err);
+        speakWithSpeechSynthesis(text, indicator);
+      });
+    }
+  } catch (err) {
+    console.warn("HTML5 audio failed, falling back to SpeechSynthesis:", err);
+    speakWithSpeechSynthesis(text, indicator);
+  }
+}
+
+function speakWithSpeechSynthesis(text, indicator) {
+  if ('speechSynthesis' in window) {
+    try {
+      if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+        window.speechSynthesis.cancel();
+      }
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.05;
+      utterance.lang = 'en-US';
+
+      utterance.onend = () => {
+        if (indicator) indicator.style.opacity = '0.5';
+      };
+
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.error("SpeechSynthesis failed:", e);
+    }
   }
 }
 
 function testVoice() {
-  speakAlert("Traffic Sign Recognition and Road Safety Assistant is operational.");
+  speakAlert("Traffic Sign Recognition and Road Safety Assistant voice alert system is operational.");
 }
 </script>
 

@@ -8,7 +8,9 @@ import os
 import shutil
 from datetime import datetime
 
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file, Response
+import urllib.request
+import urllib.parse
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import (
     LoginManager, UserMixin, login_user, logout_user, login_required, current_user
@@ -343,6 +345,22 @@ def admin_delete_user(user_id):
         db.session.commit()
         flash(f"Deleted user account {user.username}.", "success")
     return redirect(url_for("admin_panel"))
+
+
+@app.route("/api/tts")
+def api_tts():
+    text = request.args.get("text", "").strip()
+    if not text:
+        return ("", 400)
+    try:
+        encoded_text = urllib.parse.quote(text[:250])
+        tts_url = f"https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q={encoded_text}"
+        req = urllib.request.Request(tts_url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            audio_data = resp.read()
+        return Response(audio_data, mimetype="audio/mpeg")
+    except Exception as e:
+        return (f"TTS error: {e}", 500)
 
 
 # ==========================================
