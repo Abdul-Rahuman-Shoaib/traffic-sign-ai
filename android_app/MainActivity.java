@@ -16,7 +16,7 @@ import androidx.core.content.ContextCompat;
 
 public class MainActivity extends AppCompatActivity {
     private WebView webView;
-    private static final String APP_URL = "http://172.25.37.106:5000";
+    private static final String APP_URL = "https://traffic-sign-ai-4dzz.onrender.com";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

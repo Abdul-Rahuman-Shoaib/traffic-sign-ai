@@ -92,9 +92,13 @@
             <input type="file" id="imageFileInput" accept="image/*" class="form-cyber-input">
           </div>
 
-          <div class="d-flex gap-2 mb-4">
-            <button class="btn btn-cyber-primary w-100 py-2" onclick="processUploadedImage()">
-              <i class="fa-solid fa-magnifying-glass"></i> Analyze & Recognize Sign
+          <div class="d-flex flex-column flex-sm-row gap-2 mb-4">
+            <button class="btn btn-cyber-primary flex-grow-1 py-2" onclick="processUploadedImage()">
+              <i class="fa-solid fa-magnifying-glass"></i> Analyze Image
+            </button>
+            <input type="file" id="cameraSnapInput" accept="image/*" capture="environment" style="display:none;" onchange="handleCameraSnap(this)">
+            <button class="btn btn-cyber-cyan flex-grow-1 py-2" onclick="document.getElementById('cameraSnapInput').click()">
+              <i class="fa-solid fa-camera"></i> Snap Photo (Camera)
             </button>
           </div>
 
@@ -152,7 +156,7 @@
         <!-- Tab 2: Live Webcam HUD -->
         <div class="tab-pane fade" id="tab-webcam">
           <div class="hud-container mb-3 position-relative">
-            <video id="webcamVideo" autoplay playsinline class="w-100 h-100" style="object-fit:cover; border-radius: var(--radius-md); max-height: 380px;"></video>
+            <video id="webcamVideo" autoplay playsinline muted class="w-100 h-100" style="object-fit:cover; border-radius: var(--radius-md); max-height: 380px;"></video>
             <div class="hud-grid-overlay"></div>
             <div class="hud-corner hud-corner-tl"></div>
             <div class="hud-corner hud-corner-tr"></div>
@@ -352,7 +356,8 @@
 let lastSpokenText = "Caution: Stop sign ahead. Bring vehicle to a complete stop.";
 let webcamStream = null;
 let continuousLoopInterval = null;
-let currentFacingMode = "user"; // "user" or "environment" (rear camera for mobile)
+let isDetecting = false;
+let currentFacingMode = (/Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent)) ? "environment" : "user";
 
 // Initialize Chart.js Doughnut Chart
 document.addEventListener('DOMContentLoaded', () => {
@@ -474,7 +479,28 @@ async function processUploadedImage() {
   }
 }
 
-// Webcam Controls with Mobile Flip Support
+// Instant Mobile Camera Snap Handler
+async function handleCameraSnap(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const formData = new FormData();
+  formData.append("image", file, file.name || "camera_photo.jpg");
+
+  document.getElementById('detectionStatusBadge').textContent = "SCANNING...";
+  document.getElementById('detectionStatusBadge').className = "badge badge-cyber badge-warning";
+  try {
+    const res = await fetch("/detect", { method: "POST", body: formData });
+    const data = await res.json();
+    document.getElementById('detectionStatusBadge').textContent = "RECOGNIZED";
+    document.getElementById('detectionStatusBadge').className = "badge badge-cyber badge-success";
+    updateConsole(data.results, data.image_url);
+  } catch (e) {
+    console.error(e);
+    alert("Error processing camera photo.");
+  }
+}
+
+// Webcam Controls with Multi-Fallback Mobile Support
 async function initWebcamStream() {
   const video = document.getElementById('webcamVideo');
   const notice = document.getElementById('cameraOfflineNotice');
@@ -485,18 +511,71 @@ async function initWebcamStream() {
 
   if (webcamStream) {
     webcamStream.getTracks().forEach(t => t.stop());
+    webcamStream = null;
+  }
+
+  // Live stream requires WebRTC and HTTPS
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    notice.innerHTML = `
+      <i class="fa-solid fa-triangle-exclamation fs-1 text-warning mb-2"></i>
+      <div class="text-warning fw-semibold">Live Camera Blocked or Unsupported</div>
+      <div class="text-secondary small mt-1">Live streaming requires Camera permissions and HTTPS.<br>
+      You can use <b>Snap Photo with Camera</b> below to take a photo directly!</div>
+      <button class="btn btn-cyber-cyan btn-sm mt-3" onclick="document.getElementById('cameraSnapInput').click()">
+        <i class="fa-solid fa-camera"></i> Snap Photo with Camera
+      </button>`;
+    notice.style.display = 'block';
+    return;
+  }
+
+  // Progressive fallback constraints for maximum mobile compatibility
+  const constraintOptions = [
+    { video: { facingMode: { ideal: currentFacingMode }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false },
+    { video: { facingMode: { ideal: currentFacingMode } }, audio: false },
+    { video: true, audio: false }
+  ];
+
+  let stream = null;
+  let lastErr = null;
+
+  for (const constraints of constraintOptions) {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+      if (stream) break;
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+
+  if (!stream) {
+    let errHint = "Camera access failed.";
+    if (lastErr && lastErr.name === "NotAllowedError") {
+      errHint = "Permission denied. Allow Camera permission in phone/app settings.";
+    } else if (lastErr) {
+      errHint = lastErr.message || String(lastErr);
+    }
+    notice.innerHTML = `
+      <i class="fa-solid fa-video-slash fs-1 text-danger mb-2"></i>
+      <div class="text-danger fw-semibold">Camera Access Denied</div>
+      <div class="text-secondary small mt-1">${errHint}</div>
+      <div class="d-flex gap-2 justify-content-center mt-3">
+        <button class="btn btn-cyber-cyan btn-sm" onclick="initWebcamStream()">
+          <i class="fa-solid fa-rotate-right"></i> Retry Camera
+        </button>
+        <button class="btn btn-cyber-outline btn-sm" onclick="document.getElementById('cameraSnapInput').click()">
+          <i class="fa-solid fa-camera"></i> Snap Photo Instead
+        </button>
+      </div>`;
+    notice.style.display = 'block';
+    scanner.style.display = 'none';
+    return;
   }
 
   try {
-    const constraints = {
-      video: {
-        facingMode: currentFacingMode,
-        width: { ideal: 1280 },
-        height: { ideal: 720 }
-      }
-    };
-    webcamStream = await navigator.mediaDevices.getUserMedia(constraints);
+    webcamStream = stream;
     video.srcObject = webcamStream;
+    await video.play();
+
     notice.style.display = 'none';
     scanner.style.display = 'block';
     startBtn.innerHTML = '<i class="fa-solid fa-stop"></i> Stop Camera';
@@ -504,7 +583,7 @@ async function initWebcamStream() {
     captureBtn.disabled = false;
     switchBtn.disabled = false;
   } catch (err) {
-    alert("Could not access camera: " + err.message);
+    console.error("Camera video play error:", err);
   }
 }
 
@@ -515,6 +594,10 @@ function toggleWebcam() {
     webcamStream.getTracks().forEach(t => t.stop());
     webcamStream = null;
     document.getElementById('webcamVideo').srcObject = null;
+    document.getElementById('cameraOfflineNotice').innerHTML = `
+      <i class="fa-solid fa-video-slash fs-1 text-secondary mb-2"></i>
+      <div class="text-secondary fw-semibold">Live Camera Stream is Standby</div>
+      <div class="text-tertiary fs-7">Supports PC Webcams & Mobile Dashcam Rear Cameras</div>`;
     document.getElementById('cameraOfflineNotice').style.display = 'block';
     document.getElementById('webcamScanner').style.display = 'none';
     document.getElementById('startCamBtn').innerHTML = '<i class="fa-solid fa-play"></i> Start Camera';
@@ -534,22 +617,31 @@ function flipCamera() {
   }
 }
 
-function captureAndDetect() {
-  if (!webcamStream) return;
+async function captureAndDetect() {
+  if (!webcamStream || isDetecting) return;
   const video = document.getElementById('webcamVideo');
   const canvas = document.getElementById('webcamCanvas');
-  canvas.width = video.videoWidth || 640;
-  canvas.height = video.videoHeight || 480;
+  if (!video.videoWidth || !video.videoHeight) return;
+
+  isDetecting = true;
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
   const ctx = canvas.getContext('2d');
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
   canvas.toBlob(async (blob) => {
-    const formData = new FormData();
-    formData.append("image", blob, "webcam_snap.jpg");
-    const res = await fetch("/detect", { method: "POST", body: formData });
-    const data = await res.json();
-    updateConsole(data.results, data.image_url);
-  }, "image/jpeg", 0.92);
+    try {
+      const formData = new FormData();
+      formData.append("image", blob, "webcam_snap.jpg");
+      const res = await fetch("/detect", { method: "POST", body: formData });
+      const data = await res.json();
+      updateConsole(data.results, data.image_url);
+    } catch (e) {
+      console.error("Live detection fetch error:", e);
+    } finally {
+      isDetecting = false;
+    }
+  }, "image/jpeg", 0.90);
 }
 
 function toggleContinuousMode(enable) {
